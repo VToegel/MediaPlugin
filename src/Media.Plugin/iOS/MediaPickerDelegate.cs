@@ -469,48 +469,9 @@ namespace Plugin.Media
 			return newMeta;
 		}
 
-		internal static bool SaveImageWithMetadataiOS13(UIImage image, float quality, NSDictionary meta, string path, string pathExtension)
-		{
-			try
-			{
-				pathExtension = pathExtension.ToLowerInvariant();
-				var finalQuality = quality;
-				var imageData = pathExtension == "jpg" ? image.AsJPEG(finalQuality) : image.AsPNG();
-
-				//continue to move down quality , rare instances
-				while (imageData == null && finalQuality > 0)
-				{
-					finalQuality -= 0.05f;
-					imageData = image.AsJPEG(finalQuality);
-				}
-
-				if (imageData == null)
-					throw new NullReferenceException("Unable to convert image to jpeg, please ensure file exists or lower quality level");
-
-				// Copy over meta data
-				using var ciImage = CIImage.FromData(imageData);
-				using var newImageSource = ciImage.CreateBySettingProperties(meta);
-				using var ciContext = new CIContext();
-
-				if (pathExtension == "jpg")
-					return ciContext.WriteJpegRepresentation(newImageSource, NSUrl.FromFilename(path), CGColorSpace.CreateSrgb(), new NSDictionary(), out var error);
-				
-				return ciContext.WritePngRepresentation(newImageSource, NSUrl.FromFilename(path), CIFormat.ARGB8, CGColorSpace.CreateSrgb(), new NSDictionary(), out var error2);
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Unable to save image with metadata: {ex}");
-			}
-
-			return false;
-		}
-
 		internal static bool SaveImageWithMetadata(UIImage image, float quality, NSDictionary meta, string path, string pathExtension)
 		{
-			if (UIDevice.CurrentDevice.CheckSystemVersion(13, 0))
-				return SaveImageWithMetadataiOS13(image, quality, meta, path, pathExtension);
-
-			try
+            try
 			{
 				pathExtension = pathExtension.ToLowerInvariant();
 				var finalQuality = quality;
@@ -526,74 +487,25 @@ namespace Plugin.Media
 				if (imageData == null)
 					throw new NullReferenceException("Unable to convert image to jpeg, please ensure file exists or lower quality level");
 
-				var dataProvider = new CGDataProvider(imageData);
-				var cgImageFromJpeg = CGImage.FromJPEG(dataProvider, null, false, CGColorRenderingIntent.Default);
-				var imageWithExif = new NSMutableData();
-				var destination = CGImageDestination.Create(imageWithExif, UTType.JPEG, 1);
-				var cgImageMetadata = new CGMutableImageMetadata();
-				var destinationOptions = new CGImageDestinationOptions();
+                var saveSuccessful = false;
 
-				if (meta.ContainsKey(ImageIO.CGImageProperties.Orientation))
-					destinationOptions.Dictionary[ImageIO.CGImageProperties.Orientation] = meta[ImageIO.CGImageProperties.Orientation];
+                // Copy over meta data
+                using (var ciImage = CIImage.FromData(imageData))
+                {
+                    using (var newImageSource = ciImage.CreateBySettingProperties(meta))
+                    {
+                        using (var ciContext = new CIContext())
+                        {
+                            if (pathExtension == "jpg")
+                                saveSuccessful = ciContext.WriteJpegRepresentation(newImageSource, NSUrl.FromFilename(path), CGColorSpace.CreateSrgb(), new NSDictionary(), out var error);
+                            else
+                                saveSuccessful = ciContext.WritePngRepresentation(newImageSource, NSUrl.FromFilename(path), CIFormat.ARGB8, CGColorSpace.CreateSrgb(), new NSDictionary(), out var error);
+                        }
+                    }
+                }
 
-				if (meta.ContainsKey(ImageIO.CGImageProperties.DPIWidth))
-					destinationOptions.Dictionary[ImageIO.CGImageProperties.DPIWidth] = meta[ImageIO.CGImageProperties.DPIWidth];
-
-				if (meta.ContainsKey(ImageIO.CGImageProperties.DPIHeight))
-					destinationOptions.Dictionary[ImageIO.CGImageProperties.DPIHeight] = meta[ImageIO.CGImageProperties.DPIHeight];
-
-
-				if (meta.ContainsKey(ImageIO.CGImageProperties.ExifDictionary))
-				{
-
-					destinationOptions.ExifDictionary =
-										  new CGImagePropertiesExif(meta[ImageIO.CGImageProperties.ExifDictionary] as NSDictionary);
-
-				}
-
-
-				if (meta.ContainsKey(ImageIO.CGImageProperties.TIFFDictionary))
-				{
-					var existingTiffDict = meta[ImageIO.CGImageProperties.TIFFDictionary] as NSDictionary;
-					if (existingTiffDict != null)
-					{
-						var newTiffDict = new NSMutableDictionary();
-						newTiffDict.SetValuesForKeysWithDictionary(existingTiffDict);
-						newTiffDict.SetValueForKey(meta[ImageIO.CGImageProperties.Orientation], ImageIO.CGImageProperties.TIFFOrientation);
-						destinationOptions.TiffDictionary = new CGImagePropertiesTiff(newTiffDict);
-					}
-
-				}
-				if (meta.ContainsKey(ImageIO.CGImageProperties.GPSDictionary))
-				{
-					destinationOptions.GpsDictionary =
-						new CGImagePropertiesGps(meta[ImageIO.CGImageProperties.GPSDictionary] as NSDictionary);
-				}
-				if (meta.ContainsKey(ImageIO.CGImageProperties.JFIFDictionary))
-				{
-					destinationOptions.JfifDictionary =
-						new CGImagePropertiesJfif(meta[ImageIO.CGImageProperties.JFIFDictionary] as NSDictionary);
-				}
-				if (meta.ContainsKey(ImageIO.CGImageProperties.IPTCDictionary))
-				{
-					destinationOptions.IptcDictionary =
-						new CGImagePropertiesIptc(meta[ImageIO.CGImageProperties.IPTCDictionary] as NSDictionary);
-				}
-				destination.AddImageAndMetadata(cgImageFromJpeg, cgImageMetadata, destinationOptions);
-				var success = destination.Close();
-				if (success)
-				{
-					var saved = imageWithExif.Save(path, true, out NSError error);
-					if (error != null)
-						Debug.WriteLine($"Unable to save exif data: {error.ToString()}");
-
-					imageWithExif.Dispose();
-					imageWithExif = null;
-				}
-				
-				return success;
-
-			}
+                return saveSuccessful;
+            }
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Unable to save image with metadata: {ex}");
