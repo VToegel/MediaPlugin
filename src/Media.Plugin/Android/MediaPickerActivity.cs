@@ -117,8 +117,14 @@ namespace Plugin.Media
                 pickIntent = new Intent(action);
                 if (action == Intent.ActionPick)
 				{
-					if (multiSelect)
-						pickIntent.PutExtra(Intent.ExtraAllowMultiple, true);
+                    if (multiSelect)
+                    {
+                        // Override any default photo gallery by explicity choosing the google photo gallery here
+                        // Customization added by Matthew K - Oct 4, 2019
+                        //pickIntent.SetClassName("com.google.android.apps.photos", "com.google.android.apps.photos.picker.external.ExternalPickerActivity");
+                        pickIntent.SetPackage("com.google.android.apps.photos");
+                        pickIntent.PutExtra(Intent.ExtraAllowMultiple, true);
+                    }
 
 					pickIntent.SetType(type);
 				}
