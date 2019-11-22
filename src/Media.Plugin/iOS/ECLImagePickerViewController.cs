@@ -247,7 +247,7 @@ namespace Plugin.Media
 
 				var title = $"{first} {MaximumImagesCount} {second}";
 
-				var third = NSBundle.MainBundle.GetLocalizedString("You can only send", "You can only send");
+				var third = NSBundle.MainBundle.GetLocalizedString("Please do not pick more than", "Please do not pick more than");
 				var fourth = NSBundle.MainBundle.GetLocalizedString("photos at a time", "photos at a time.");
 
 				var message = $"{third} {MaximumImagesCount} {fourth}";
