@@ -657,6 +657,8 @@ namespace Plugin.Media
                 {
                     try
                     {
+                        Thread.CurrentThread.Priority = System.Threading.ThreadPriority.Highest;
+
                         var rotation = GetRotation(exif);
 
                         // if we don't need to rotate, aren't resizing, and aren't adjusting quality then simply return
@@ -784,6 +786,10 @@ namespace Plugin.Media
                 return Task.FromResult(false);
 #endif
             }
+            finally
+            {
+                Thread.CurrentThread.Priority = System.Threading.ThreadPriority.Normal;
+            }
 
         }
 
@@ -859,6 +865,8 @@ namespace Plugin.Media
                 {
                     try
                     {
+                        Thread.CurrentThread.Priority = System.Threading.ThreadPriority.Highest;
+
                         if (photoSize == PhotoSize.Full)
                             return false;
 
@@ -948,6 +956,10 @@ namespace Plugin.Media
 #else
                 return Task.FromResult(false);
 #endif
+            }
+            finally
+            {
+                Thread.CurrentThread.Priority = System.Threading.ThreadPriority.Normal;
             }
         }
 
