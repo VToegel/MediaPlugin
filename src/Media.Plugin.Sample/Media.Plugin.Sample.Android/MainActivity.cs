@@ -12,7 +12,7 @@ using Plugin.Permissions;
 namespace Media.Plugin.Sample.Droid
 {
     [Activity(Label = "Media.Plugin.Sample", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
-    public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
+    public class MainActivity : Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
         protected override void OnCreate(Bundle bundle)
         {
@@ -20,9 +20,10 @@ namespace Media.Plugin.Sample.Droid
             ToolbarResource = Resource.Layout.Toolbar;
 
             base.OnCreate(bundle);
+			FFImageLoading.Forms.Platform.CachedImageRenderer.Init(true);
 			CrossCurrentActivity.Current.Init(this, bundle);
-			global::Xamarin.Forms.Forms.Init(this, bundle);
-			Android.Glide.Forms.Init();
+			Xamarin.Forms.Forms.Init(this, bundle);
+			Android.Glide.Forms.Init(this);
 			LoadApplication(new App());
         }
 

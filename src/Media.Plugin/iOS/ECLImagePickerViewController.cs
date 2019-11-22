@@ -1,15 +1,17 @@
 ﻿// Based off the ELCImagePicker implementation from https://github.com/bjdodson/XamarinSharpPlus
 
-using System;
-using UIKit;
 using AssetsLibrary;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using Foundation;
-using System.Threading.Tasks;
 using CoreGraphics;
+using Foundation;
+using Photos;
 using Plugin.Media.Abstractions;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using UIKit;
 
 namespace Plugin.Media
 {
@@ -71,15 +73,15 @@ namespace Plugin.Media
 		/// <value>The maximum images count.</value>
 		public int MaximumImagesCount { get; set; }
 
-		private readonly StoreCameraMediaOptions _options;
+		private readonly StoreCameraMediaOptions options;
 
-		readonly TaskCompletionSource<List<MediaFile>> _TaskCompletionSource = new TaskCompletionSource<List<MediaFile>>();
+		readonly TaskCompletionSource<List<MediaFile>> taskCompletionSource = new TaskCompletionSource<List<MediaFile>>();
 
 		public Task<List<MediaFile>> Completion
 		{
 			get
 			{
-				return _TaskCompletionSource.Task;
+				return taskCompletionSource.Task;
 			}
 		}
 
@@ -136,33 +138,16 @@ namespace Plugin.Media
 
 		ELCImagePickerViewController(UIViewController rootController, StoreCameraMediaOptions options = null) : base(rootController)
 		{
-			_options = options ?? new StoreCameraMediaOptions();
+			this.options = options ?? new StoreCameraMediaOptions();
 		}
 
-		void SelectedAssets(List<ALAsset> assets)
+
+		void SelectedMediaFiles(List<MediaFile> mediaFiles)
 		{
-			var results = new List<MediaFile>();
-			foreach (var asset in assets)
-			{
-				var obj = asset.AssetType;
-				if (obj == default(ALAssetType))
-					continue;
-
-				var rep = asset.DefaultRepresentation;
-				if (rep != null)
-				{
-					var mediaFile = GetPictureMediaFile(asset);
-					if (mediaFile != null)
-					{
-						results.Add(mediaFile);
-					}
-				}
-			}
-
-			_TaskCompletionSource.TrySetResult(results);
+			taskCompletionSource.TrySetResult(mediaFiles);
 		}
 
-		private MediaFile GetPictureMediaFile(ALAsset asset)
+		private MediaFile GetPictureMediaFile(ALAsset asset, long index = 0)
 		{
 			var rep = asset.DefaultRepresentation;
 			if (rep == null)
@@ -170,93 +155,74 @@ namespace Plugin.Media
 
 			var cgImage = rep.GetImage();
 
+			UIImage image = null;
+			if (cgImage == null)
+			{
+				var fetch = PHAsset.FetchAssets(new[] { asset.AssetUrl }, null);
+				var ph = fetch.firstObject as PHAsset;
+				var manager = PHImageManager.DefaultManager;
+				var phOptions = new PHImageRequestOptions
+				{
+					Version = PHImageRequestOptionsVersion.Original,
+					NetworkAccessAllowed = true,
+					Synchronous = true
+				};
+
+				phOptions.ProgressHandler = (double progress, NSError error, out bool stop, NSDictionary info) =>
+				{
+					Debug.WriteLine($"Progress: {progress.ToString()}");
+					
+					stop = false;
+				};
+
+				if (UIDevice.CurrentDevice.CheckSystemVersion(13, 0))
+				{
+					manager.RequestImageDataAndOrientation(ph, phOptions, (data, i, orientation, k) =>
+					{
+						if (data != null)
+							image = new UIImage(data, 1.0f);
+					});
+				}
+				else
+				{ 
+					manager.RequestImageData(ph, phOptions, (data, i, orientation, k) =>
+					{
+						if (data != null)
+							image = new UIImage(data, 1.0f);
+					});
+				}
+				phOptions?.Dispose();
+				fetch?.Dispose();
+				ph?.Dispose();
+			}
+			else
+			{
+				image = new UIImage(cgImage, 1.0f, (UIImageOrientation)rep.Orientation);
+			}
+
 			var path = MediaPickerDelegate.GetOutputPath(MediaImplementation.TypeImage,
-				_options.Directory ?? "temp",
-				_options.Name);
+				options.Directory ?? "temp",
+				options.Name, asset.AssetUrl?.PathExtension, index);
 
-			var image = new UIImage(cgImage, 1.0f, (UIImageOrientation)rep.Orientation);
+			cgImage?.Dispose();
+			cgImage = null;
+			rep?.Dispose();
+			rep = null;
 
-			var percent = 1.0f;
-			if (_options.PhotoSize != PhotoSize.Full)
-			{
-				try
-				{
-					switch (_options.PhotoSize)
-					{
-						case PhotoSize.Large:
-							percent = .75f;
-							break;
-						case PhotoSize.Medium:
-							percent = .5f;
-							break;
-						case PhotoSize.Small:
-							percent = .25f;
-							break;
-						case PhotoSize.Custom:
-							percent = (float)_options.CustomPhotoSize / 100f;
-							break;
-					}
+            //There might be cases when the original image cannot be retrieved while image thumb was still present.
+            //Then no need to try to save it as we will get an exception here
+            //TODO: Ideally, we should notify the client that we failed to get original image
+            //TODO: Otherwise, it might be confusing to the user, that he saw the thumb, but did not get the image
+            if (image == null)
+            {
+	            return null;
+            }
+			
+            image.AsJPEG().Save(path, true);
 
-					if (_options.PhotoSize == PhotoSize.MaxWidthHeight && _options.MaxWidthHeight.HasValue)
-					{
-						var max = Math.Max(image.CGImage.Width, image.CGImage.Height);
-						if (max > _options.MaxWidthHeight.Value)
-						{
-							percent = (float)_options.MaxWidthHeight.Value / (float)max;
-						}
-					}
-
-					if (percent < 1.0f)
-					{
-						//begin resizing image
-						image = image.ResizeImageWithAspectRatio(percent);
-					}
-
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"Unable to compress image: {ex}");
-				}
-			}
-
-
-			NSDictionary meta = null;
-			try
-			{
-				//meta = PhotoLibraryAccess.GetPhotoLibraryMetadata(asset.AssetUrl);
-
-				//meta = info[UIImagePickerController.MediaMetadata] as NSDictionary;
-				if (meta != null && meta.ContainsKey(ImageIO.CGImageProperties.Orientation))
-				{
-					var newMeta = new NSMutableDictionary();
-					newMeta.SetValuesForKeysWithDictionary(meta);
-					var newTiffDict = new NSMutableDictionary();
-					newTiffDict.SetValuesForKeysWithDictionary(meta[ImageIO.CGImageProperties.TIFFDictionary] as NSDictionary);
-					newTiffDict.SetValueForKey(meta[ImageIO.CGImageProperties.Orientation], ImageIO.CGImageProperties.TIFFOrientation);
-					newMeta[ImageIO.CGImageProperties.TIFFDictionary] = newTiffDict;
-
-					meta = newMeta;
-				}
-				var location = _options.Location;
-				if (meta != null && location != null)
-				{
-					meta = MediaPickerDelegate.SetGpsLocation(meta, location);
-				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Unable to get metadata: {ex}");
-			}
-
-			//iOS quality is 0.0-1.0
-			var quality = (_options.CompressionQuality / 100f);
-			var savedImage = false;
-			if (meta != null)
-				savedImage = MediaPickerDelegate.SaveImageWithMetadata(image, quality, meta, path);
-
-			if (!savedImage)
-				image.AsJPEG(quality).Save(path, true);
-
+			image?.Dispose();
+			image = null;
+			GC.Collect(GC.MaxGeneration, GCCollectionMode.Default);
 
 			string aPath = null;
 			//try to get the album path's url
@@ -268,7 +234,7 @@ namespace Plugin.Media
 
 		void CancelledPicker()
 		{
-			_TaskCompletionSource.TrySetCanceled();
+			taskCompletionSource.TrySetCanceled();
 		}
 
 		bool ShouldSelectAsset(ALAsset asset, int previousCount)
@@ -368,15 +334,22 @@ namespace Plugin.Media
 					return;
 				}
 
-				// added fix for camera albums order
-				if (agroup.Name.ToString().ToLower() == "camera roll" && agroup.Type == ALAssetsGroupType.SavedPhotos)
-				{
-					assetGroups.Insert(0, agroup);
-				}
-				else
-				{
-					assetGroups.Add(agroup);
-				}
+                //We show photos only. Let's get only them
+				agroup.SetAssetsFilter(ALAssetsFilter.AllPhotos);
+
+                //do not add empty album
+                if (agroup.Count == 0)
+                {
+	                return;
+                }
+
+                //ALAssetsGroupType.All might have duplicated albums. let's skip the album if we already have it
+                if (assetGroups.Any(g => g.PersistentID == agroup.PersistentID))
+                {
+	                return;
+                }
+                
+                assetGroups.Add(agroup);
 
 				dispatcher.BeginInvokeOnMainThread(ReloadTableView);
 			}
@@ -404,7 +377,7 @@ namespace Plugin.Media
 
 				// Get count
 				var g = assetGroups[indexPath.Row];
-				g.SetAssetsFilter(ALAssetsFilter.AllPhotos);
+				
 				var gCount = g.Count;
 				cell.TextLabel.Text = string.Format("{0} ({1})", g.Name, gCount);
 				try
@@ -423,7 +396,6 @@ namespace Plugin.Media
 			public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
 			{
 				var assetGroup = assetGroups[indexPath.Row];
-				assetGroup.SetAssetsFilter(ALAssetsFilter.AllPhotos);
 				var picker = new ELCAssetTablePicker(assetGroup);
 				
 				picker.LoadingTitle = LoadingTitle;
@@ -577,8 +549,17 @@ namespace Plugin.Media
 				if (ImmediateReturn)
 				{
 					var asset = AssetForIndexPath(targetIndexPath);
-					var obj = new List<ALAsset> { asset };
-					Parent.SelectedAssets(obj);
+					var mediaFile = Parent?.GetPictureMediaFile(asset);
+					asset?.Dispose();
+					asset = null;
+					if (mediaFile != null)
+					{
+						Parent?.SelectedMediaFiles(new List<MediaFile>{ mediaFile });
+					}
+					else
+					{
+						Parent?.SelectedMediaFiles(new List<MediaFile>());
+					}
 				}
 			}
 
@@ -619,20 +600,59 @@ namespace Plugin.Media
 				}
 			}
 
-			private void DoneClicked(object sender = null, EventArgs e = null)
+			private async void DoneClicked(object sender = null, EventArgs e = null)
 			{
-				var selected = new List<ALAsset>();
-
-				foreach (var selectedIndexPath in CollectionView.GetIndexPathsForSelectedItems())
-				{
-					selected.Add(AssetForIndexPath(selectedIndexPath));
-				}
-
 				var parent = Parent;
-				if (parent != null)
+				var selectedItemsIndex = CollectionView.GetIndexPathsForSelectedItems();
+				var selectedItemsCount = selectedItemsIndex.Length;
+				var selectedMediaFiles = new MediaFile[selectedItemsCount];
+
+				//Create activity indicator if we have selected items.
+                //It will give the user some visual feedback that the app is still working
+                //if the media have to be downloaded from the iCloud
+                UIView pageOverlay = null;
+                UIActivityIndicatorView activityIndicator = null;
+				if (selectedItemsCount > 0)
 				{
-					parent.SelectedAssets(selected);
+					InvokeOnMainThread(() =>
+					{
+						pageOverlay = new UIView(View.Bounds);
+						pageOverlay.BackgroundColor = UIColor.Black.ColorWithAlpha(0.8f);
+						View.Add(pageOverlay);
+
+						activityIndicator = new UIActivityIndicatorView(View.Bounds);
+						activityIndicator.ActivityIndicatorViewStyle = UIActivityIndicatorViewStyle.WhiteLarge;
+						activityIndicator.StartAnimating();
+						View.Add(activityIndicator);
+					});
 				}
+
+				var tasks = new List<Task>();
+				for (int i = 0; i < selectedItemsCount; i++)
+				{
+					var j = i;
+					var t = Task.Run(() =>
+					{
+						var alAsset = AssetForIndexPath(selectedItemsIndex[j]);
+						var mediaFile = parent?.GetPictureMediaFile(alAsset, j);
+						if (mediaFile != null)
+						{
+							selectedMediaFiles[j] = mediaFile;
+						}
+
+						alAsset?.Dispose();
+						alAsset = null;
+					});
+					tasks.Add(t);
+				}
+
+				await Task.WhenAll(tasks);
+
+                pageOverlay?.RemoveFromSuperview();
+                activityIndicator?.RemoveFromSuperview();
+
+                //Some items in the array might be null. Let's remove them.
+				parent?.SelectedMediaFiles(selectedMediaFiles.Where(mf => mf != null).ToList());
 			}
 
 			class ELCAssetCell : UICollectionViewCell

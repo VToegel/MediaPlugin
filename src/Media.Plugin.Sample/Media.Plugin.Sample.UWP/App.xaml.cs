@@ -41,7 +41,7 @@ namespace Media.Plugin.Sample.UWP
         {
 
 
-            Frame rootFrame = Window.Current.Content as Frame;
+			var rootFrame = Window.Current.Content as Frame;
 
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
@@ -51,7 +51,7 @@ namespace Media.Plugin.Sample.UWP
                 rootFrame = new Frame();
 
                 rootFrame.NavigationFailed += OnNavigationFailed;
-
+                FFImageLoading.Forms.Platform.CachedImageRenderer.Init();
                 Xamarin.Forms.Forms.Init(e);
 
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)

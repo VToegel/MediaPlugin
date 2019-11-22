@@ -265,11 +265,11 @@ It is highly recommended that you use a custom Application that are outlined in 
 
 ## Android Misc Setup
 
-By adding these permissions [Google Play will automatically filter out devices](http://developer.android.com/guide/topics/manifest/uses-feature-element.html#permissions-features) without specific hardware. You can get around this by adding the following to your AssemblyInfo.cs file in your Android project:
+By default, the library adds `android.hardware.camera` and `android.hardware.camera.autofocus` to your apps manifest as optional features. It is your responsbility to check whether your device supports the hardware before using it. If instead you'd like [Google Play to filter out devices](http://developer.android.com/guide/topics/manifest/uses-feature-element.html#permissions-features) without the required hardware, add the following to your AssemblyInfo.cs file in your Android project:
 
 ```
-[assembly: UsesFeature("android.hardware.camera", Required = false)]
-[assembly: UsesFeature("android.hardware.camera.autofocus", Required = false)]
+[assembly: UsesFeature("android.hardware.camera", Required = true)]
+[assembly: UsesFeature("android.hardware.camera.autofocus", Required = true)]
 ```
 
 
@@ -305,7 +305,7 @@ You can read more at: https://developer.android.com/training/camera/photobasics.
 
 #### iOS
 
-Your app is required to have keys in your Info.plist for `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` in order to access the device's camera and photo/video library. If you are using the Video capabilities of the library then you must also add `NSMicrophoneUsageDescription`.  If you want to "SaveToGallery" then you must add the `NSPhotoLibraryAddUsageDescription` key into your info.plist. The string that you provide for each of these keys will be displayed to the user when they are prompted to provide permission to access these device features. You can read me here: https://blog.xamarin.com/new-ios-10-privacy-permission-settings/
+Your app is required to have keys in your Info.plist for `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` in order to access the device's camera and photo/video library. If you are using the Video capabilities of the library then you must also add `NSMicrophoneUsageDescription`.  If you want to "SaveToGallery" then you must add the `NSPhotoLibraryAddUsageDescription` key into your info.plist. The string that you provide for each of these keys will be displayed to the user when they are prompted to provide permission to access these device features. You can read me here: [New iOS 10 Privacy Permission Settings](https://devblogs.microsoft.com/xamarin/new-ios-10-privacy-permission-settings)
 
 Such as:
 ```xml
@@ -332,14 +332,13 @@ By default, the Media Plugin will attempt to request multiple permissions, but e
 
 Here is an example:
 ```csharp
-var cameraStatus = await CrossPermissions.Current.CheckPermissionStatusAsync(Permission.Camera);
-var storageStatus = await CrossPermissions.Current.CheckPermissionStatusAsync(Permission.Storage);
+var cameraStatus = await CrossPermissions.Current.CheckPermissionStatusAsync<CameraPermission>();
+var storageStatus = await CrossPermissions.Current.CheckPermissionStatusAsync<StoragePermission>();
 
 if (cameraStatus != PermissionStatus.Granted || storageStatus != PermissionStatus.Granted)
 {
-    var results = await CrossPermissions.Current.RequestPermissionsAsync(new[] {Permission.Camera, Permission.Storage});
-    cameraStatus = results[Permission.Camera];
-    storageStatus = results[Permission.Storage];
+    cameraStatus = await CrossPermissions.Current.RequestPermissionAsync<CameraPermission>();
+    storageStatus = await CrossPermissions.Current.RequestPermissionAsync<StoragePermission>();
 }
 
 if (cameraStatus == PermissionStatus.Granted && storageStatus == PermissionStatus.Granted)
