@@ -6,6 +6,11 @@ Please read through all of the setup directions below: https://github.com/jamesm
 
 Ported from [Xamarin.Mobile](http://www.github.com/xamarin/xamarin.mobile) to a cross platform API.
 
+### Key Differences in this Fork
+
+1. iOS Image Metadata code is simplified (legacy functions removed)
+2. Android is forced to open Google image gallery (some image galleries do not support multi-picking)
+
 ### Setup
 * Available on NuGet: http://www.nuget.org/packages/Xam.Plugin.Media [![NuGet](https://img.shields.io/nuget/v/Xam.Plugin.Media.svg?label=NuGet)](https://www.nuget.org/packages/Xam.Plugin.Media/)
 * Install into your .NET Standard project and Client projects.
