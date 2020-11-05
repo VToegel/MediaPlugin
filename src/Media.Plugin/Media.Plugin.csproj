@@ -61,10 +61,6 @@
 
 	<ItemGroup Condition=" $(TargetFramework.StartsWith('netstandard')) ">
 	</ItemGroup>
-
-	<ItemGroup Condition=" $(TargetFramework.StartsWith('uap10.0')) ">
-		<Compile Include="**\UWP\*.cs" />
-	</ItemGroup>
 	
 	<ItemGroup Condition=" $(TargetFramework.StartsWith('MonoAndroid')) ">
 		<Compile Include="**\Android\*.cs" />
@@ -81,11 +77,5 @@
 	
 	<ItemGroup Condition=" $(TargetFramework.StartsWith('Xamarin.iOS')) ">
 		<Compile Include="**\iOS\*.cs" />
-	</ItemGroup>
-	<ItemGroup Condition=" $(TargetFramework.StartsWith('Tizen')) ">
-		<Compile Include="**\Tizen\*.cs" />
-		<PackageReference Include="Tizen.NET" Version="4.0.0">
-			<ExcludeAssets>Runtime</ExcludeAssets>
-		</PackageReference>
 	</ItemGroup>
 </Project>
