@@ -111,7 +111,20 @@ namespace Plugin.Media
             return media;
         }
 
-	    public async Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
+        /// <summary>
+        /// Nothing special implemented for V2 on android yet
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="pickerOptions"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task<List<MediaFile>> PickPhotosAsyncV2(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
+        {
+            return await PickPhotosAsync(options, pickerOptions, token);
+        }
+
+
+        public async Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
 		{
 			if (!await RequestStoragePermission())
 			{
@@ -189,6 +202,7 @@ namespace Plugin.Media
                 throw new MediaPermissionException(nameof(Permissions.Camera));
             }
 
+
             VerifyOptions(options);
 
             var media = await TakeMediaAsync("image/*", MediaStore.ActionImageCapture, options, token);
@@ -216,8 +230,8 @@ namespace Plugin.Media
                     var albumUri = cr.Insert(MediaStore.Images.Media.ExternalContentUri, values);
 
                     using (System.IO.Stream input = File.OpenRead(media.Path))
-                        using (System.IO.Stream output = cr.OpenOutputStream(albumUri))
-                            input.CopyTo(output);
+                    using (System.IO.Stream output = cr.OpenOutputStream(albumUri))
+                        input.CopyTo(output);
                 }
                 catch (Exception ex)
                 {
@@ -226,6 +240,8 @@ namespace Plugin.Media
             }
 
             //check to see if we need to rotate if success
+
+
             try
             {
                 var exif = new ExifInterface(media.Path);

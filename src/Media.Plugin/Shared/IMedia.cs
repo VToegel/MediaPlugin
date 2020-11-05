@@ -50,13 +50,23 @@ namespace Plugin.Media.Abstractions
 		/// </summary>
 		/// <returns>Media file or null if canceled</returns>
 		Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken));
-	    /// <summary>
-	    /// Take a photo async with specified options
-	    /// </summary>
-	    /// <param name="options">Camera Media Options</param>
-	    /// <param name="token">Cancellation token</param>
-	    /// <returns>Media file of photo or null if canceled</returns>
-	    Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options, CancellationToken token = default(CancellationToken));
+
+		/// <summary>
+		/// Uses updated lib functions for multi-picking gallery
+		/// </summary>
+		/// <param name="options"></param>
+		/// <param name="pickerOptions"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		Task<List<MediaFile>> PickPhotosAsyncV2(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken));
+
+		/// <summary>
+		/// Take a photo async with specified options
+		/// </summary>
+		/// <param name="options">Camera Media Options</param>
+		/// <param name="token">Cancellation token</param>
+		/// <returns>Media file of photo or null if canceled</returns>
+		Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options, CancellationToken token = default(CancellationToken));
 
 		/// <summary>
 		/// Picks a video from the default gallery

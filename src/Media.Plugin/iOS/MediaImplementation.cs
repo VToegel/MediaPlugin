@@ -11,6 +11,8 @@ using Foundation;
 using System.Collections.Generic;
 using Permissions = Xamarin.Essentials.Permissions;
 using PermissionStatus = Xamarin.Essentials.PermissionStatus;
+using Plugin.Media.iOS;
+using PhotosUI;
 
 namespace Plugin.Media
 {
@@ -96,6 +98,45 @@ namespace Plugin.Media
 			};
 
 			return await GetMediaAsync(UIImagePickerControllerSourceType.PhotoLibrary, TypeImage, cameraOptions, token);
+		}
+
+		public async Task<List<MediaFile>> PickPhotosAsyncV2(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
+        {
+			if (!IsPickPhotoSupported)
+				throw new NotSupportedException();
+
+			// check permissions (letting PHPicker do it is pretty broken)
+			CheckUsageDescription(photoDescription);
+			await CheckPermissions(nameof(Permissions.Photos));
+
+			// ignoring all this for now - currently returning a copy of the fullsiize original file with it's metadata intact
+			var cameraOptions = new StoreCameraMediaOptions
+			{
+				PhotoSize = options?.PhotoSize ?? PhotoSize.Full,
+				CompressionQuality = options?.CompressionQuality ?? 100,
+				AllowCropping = false,
+				CustomPhotoSize = options?.CustomPhotoSize ?? 100,
+				MaxWidthHeight = options?.MaxWidthHeight,
+				RotateImage = options?.RotateImage ?? true,
+				SaveMetaData = options?.SaveMetaData ?? true,
+				SaveToAlbum = false,
+				ModalPresentationStyle = options?.ModalPresentationStyle ?? MediaPickerModalPresentationStyle.FullScreen,
+			};
+
+			var config = new PHPickerConfiguration();
+			config.Filter = PHPickerFilter.ImagesFilter;
+			config.SelectionLimit = 10; // arbitrary limit to 10 for now
+
+			var viewController = GetHostViewController();
+
+			var picker = new PHPickerViewController(config);
+			picker.Delegate = new MediaPickerService.PickerDelegate();
+
+			picker.ModalPresentationStyle = UIModalPresentationStyle.OverCurrentContext;
+			viewController.PresentViewController(picker, true, null);
+
+			MediaPickerService.CompletionSource = new TaskCompletionSource<List<MediaFile>>();
+			return await MediaPickerService.CompletionSource.Task;
 		}
 
 		public async Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
@@ -337,56 +378,56 @@ namespace Plugin.Media
 
 		Task<List<MediaFile>> GetMediasAsync(UIImagePickerControllerSourceType sourceType, string mediaType, StoreCameraMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
 		{
-			var viewController = GetHostViewController();
+            var viewController = GetHostViewController();
 
-			if (options == null)
-				options = new StoreCameraMediaOptions();
+            if (options == null)
+                options = new StoreCameraMediaOptions();
 
-			var ndelegate = new MediaPickerDelegate(viewController, sourceType, options, token);
-			var od = Interlocked.CompareExchange(ref pickerDelegate, ndelegate, null);
-			if (od != null)
-				throw new InvalidOperationException("Only one operation can be active at a time");
+            var ndelegate = new MediaPickerDelegate(viewController, sourceType, options, token);
+            var od = Interlocked.CompareExchange(ref pickerDelegate, ndelegate, null);
+            if (od != null)
+                throw new InvalidOperationException("Only one operation can be active at a time");
 
-			var picker = ELCImagePickerViewController.Create(options, pickerOptions);
+            var picker = ELCImagePickerViewController.Create(options, pickerOptions);
 
-			if (UIDevice.CurrentDevice.UserInterfaceIdiom == UIUserInterfaceIdiom.Pad && sourceType == UIImagePickerControllerSourceType.PhotoLibrary)
-			{
-				ndelegate.Popover = popover = new UIPopoverController(picker);
-				ndelegate.Popover.Delegate = new MediaPickerPopoverDelegate(ndelegate, picker);
-				ndelegate.DisplayPopover();
-			}
-			else
-			{
-				if (UIDevice.CurrentDevice.CheckSystemVersion(9, 0))
-				{
-					picker.ModalPresentationStyle = UIModalPresentationStyle.OverCurrentContext;
-				}
-				viewController.PresentViewController(picker, true, null);
-			}
+            if (UIDevice.CurrentDevice.UserInterfaceIdiom == UIUserInterfaceIdiom.Pad && sourceType == UIImagePickerControllerSourceType.PhotoLibrary)
+            {
+                ndelegate.Popover = popover = new UIPopoverController(picker);
+                ndelegate.Popover.Delegate = new MediaPickerPopoverDelegate(ndelegate, picker);
+                ndelegate.DisplayPopover();
+            }
+            else
+            {
+                if (UIDevice.CurrentDevice.CheckSystemVersion(9, 0))
+                {
+                    picker.ModalPresentationStyle = UIModalPresentationStyle.OverCurrentContext;
+                }
+                viewController.PresentViewController(picker, true, null);
+            }
 
-			// TODO: Make this use the existing Delegate?
-			return picker.Completion.ContinueWith(t =>
-			{
-				Dismiss(popover, picker);
-				picker.BeginInvokeOnMainThread(() =>
-				{
-					picker.DismissViewController(true, null);
-				});
+            // TODO: Make this use the existing Delegate?
+            return picker.Completion.ContinueWith(t =>
+            {
+                Dismiss(popover, picker);
+                picker.BeginInvokeOnMainThread(() =>
+                {
+                    picker.DismissViewController(true, null);
+                });
 
-				if (t.IsCanceled || t.Exception != null)
-				{
-					return Task.FromResult(new List<MediaFile>());
-				}
+                if (t.IsCanceled || t.Exception != null)
+                {
+                    return Task.FromResult(new List<MediaFile>());
+                }
 
-				var files = t.Result;
-				Parallel.ForEach(files, mediaFile =>
-				{
-					ResizeAndCompressImage(options, mediaFile, Path.GetExtension(mediaFile.Path).Replace(".", string.Empty));
-				});
+                var files = t.Result;
+                Parallel.ForEach(files, mediaFile =>
+                {
+                    ResizeAndCompressImage(options, mediaFile, Path.GetExtension(mediaFile.Path).Replace(".", string.Empty));
+                });
 
-				return t;
-			}).Unwrap();
-		}
+                return t;
+            }).Unwrap();
+        }
 
 		static void ResizeAndCompressImage(StoreCameraMediaOptions options, MediaFile mediaFile, string pathExtension)
 		{
