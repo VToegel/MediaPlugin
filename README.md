@@ -1,24 +1,21 @@
-## Media Plugin for Xamarin and Windows
+## Media Plugin for Xamarin
 
 Simple cross platform plugin to take photos and video or pick them from a gallery from shared code.
 
-Please read through all of the setup directions below: https://github.com/jamesmontemagno/MediaPlugin#important-permission-information
+Please read through all of the setup directions below: https://github.com/MatthewKapteyn/MediaPlugin#important-permission-information
 
 Ported from [Xamarin.Mobile](http://www.github.com/xamarin/xamarin.mobile) to a cross platform API.
 
 ### Key Differences in this Fork
 
-1. iOS Image Metadata code is simplified (legacy functions removed)
-2. Android is forced to open Google image gallery (some image galleries do not support multi-picking)
+1. Only iOS and Android supported.
+2. iOS Image Metadata code is simplified (legacy functions removed)
+3. iOS now uses PHPicker library for multi-image support instead of ELC (ongoing, only basic implementation so far)
+4. Android is forced to open Google image gallery (some image galleries do not support multi-picking)
 
 ### Setup
-* Available on NuGet: http://www.nuget.org/packages/Xam.Plugin.Media [![NuGet](https://img.shields.io/nuget/v/Xam.Plugin.Media.svg?label=NuGet)](https://www.nuget.org/packages/Xam.Plugin.Media/)
-* Install into your .NET Standard project and Client projects.
+* Download and build src/Media.Plugin into your own project. No plans to distribute this fork via Nuget or elsewhere.
 * Please see the additional setup for each platforms permissions.
-
-Build Status: 
-* ![](https://jamesmontemagno.visualstudio.com/_apis/public/build/definitions/6b79a378-ddd6-4e31-98ac-a12fcd68644c/24/badge)
-* CI NuGet Feed: http://myget.org/F/xamarin-plugins
 
 **Platform Support**
 
@@ -26,9 +23,6 @@ Build Status:
 | ------------------- | :------------------: |
 |Xamarin.iOS|iOS 7+|
 |Xamarin.Android|API 14+|
-|Windows 10 UWP|10+|
-|Tizen|4+|
-
 
 ### API Usage
 
@@ -338,12 +332,6 @@ Such as:
 
 If you want the dialogs to be translated you must support the specific languages in your app. Read the [iOS Localization Guide](https://developer.xamarin.com/guides/ios/advanced_topics/localization_and_internationalization/)
 
-#### UWP
-
-Set `Webcam` permission.
-
-
-
 ### Permission Recommendations
 By default, the Media Plugin will attempt to request multiple permissions, but each platform handles this a bit differently, such as iOS which will only pop up permissions once.
 
@@ -378,4 +366,4 @@ Licensed under MIT, see license file. This is a derivative to [Xamarin.Mobile's 
 ```
 
 ### Want To Support This Project?
-All I have ever asked is to be active by submitting bugs, features, and sending those pull requests down! Want to go further? Make sure to subscribe to my weekly development podcast [Merge Conflict](http://mergeconflict.fm), where I talk all about awesome Xamarin goodies and you can optionally support the show by becoming a [supporter on Patreon](https://www.patreon.com/mergeconflictfm).
+Head on over to the original James Montemagno repo and give that guy some monies.
