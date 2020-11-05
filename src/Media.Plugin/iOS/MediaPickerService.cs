@@ -14,7 +14,7 @@ using UIKit;
 
 namespace Plugin.Media.iOS
 {
-    public class PHPickerService
+    public class MediaPickerService
     {
         //Source: https://developer.apple.com/videos/play/wwdc2020/10652
 
