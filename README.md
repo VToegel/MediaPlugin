@@ -16,6 +16,19 @@ Ported from [Xamarin.Mobile](http://www.github.com/xamarin/xamarin.mobile) to a 
 * Download and build src/Media.Plugin into your own project. No plans to distribute this fork via Nuget or elsewhere.
 * Please see the additional setup for each platforms permissions.
 
+### Recommended Settings
+When picking photos, any options that modify the original images can have a heavy impact on memory and performance (particularly on older devices).
+For best results disable image rotation, resizing and compression.
+```csharp
+// Get photos from library/gallery
+List<MediaFile> ChosenLibraryPhotos = await CrossMedia.Current.PickPhotosAsync(new PickMediaOptions
+{
+    RotateImage = false,
+    PhotoSize = PhotoSize.Full,
+    CompressionQuality = 100
+});
+```
+
 **Platform Support**
 
 |Platform|Version|
