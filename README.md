@@ -9,9 +9,8 @@ Ported from [Xamarin.Mobile](http://www.github.com/xamarin/xamarin.mobile) to a 
 ### Key Differences in this Fork
 
 1. Only iOS and Android supported.
-2. iOS Image Metadata code is simplified (legacy functions removed)
-3. iOS now uses PHPicker library for multi-image support instead of ELC (ongoing, only basic implementation so far)
-4. Android is forced to open Google image gallery (some image galleries do not support multi-picking)
+2. iOS 14+ uses PHPicker library for multi-image support instead of the 10+ year old ELC code (RIP).
+3. Android is forced to open Google image gallery (some image galleries do not support multi-picking)
 
 ### Setup
 * Download and build src/Media.Plugin into your own project. No plans to distribute this fork via Nuget or elsewhere.
@@ -74,6 +73,13 @@ bool IsPickVideoSupported { get; }
 Task<MediaFile> PickPhotoAsync(PickMediaOptions options = null);
 
 /// <summary>
+/// Pick multiple photos from the default gallery
+/// </summary>
+/// <param name="options">Pick Photo Media Options</param>
+/// <returns>Media files or null if canceled</returns>
+Task<MediaFile> PickPhotosAsync(PickMediaOptions options = null);
+
+/// <summary>
 /// Take a photo async with specified options
 /// </summary>
 /// <param name="options">Camera Media Options</param>
@@ -88,6 +94,12 @@ Task<MediaFile> TakePhotoAsync(StoreCameraMediaOptions options);
 /// </summary>
 /// <returns>Media file of video or null if canceled</returns>
 Task<MediaFile> PickVideoAsync();
+
+/// <summary>
+/// Pick multiple videos from the default gallery
+/// </summary>
+/// <returns>Media files of video or null if canceled</returns>
+Task<MediaFile> PickVideosAsync();
 
 /// <summary>
 /// Take a video with specified options
