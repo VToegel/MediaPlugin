@@ -74,29 +74,24 @@ namespace Plugin.Media.iOS
                 }
             }
 
-            /// <summary>
+            // <summary>
             /// Copy original file data so that we preserve exif/metadata
             /// </summary>
             /// <param name="src"></param>
             /// <returns></returns>
-            MediaFile GetMediaFile(NSUrl src, string mediaType)
+            MediaFile GetMediaFile(NSUrl srcUrl, string mediaType)
             {
-                // this seems to be the only working method to interact with this NSURL (other direct means fail)
-                NSData data = NSData.FromUrl(src);
-
                 // build in-app destination directory that we have access to
                 var dst = MediaPickerDelegate.GetOutputPath(mediaType, 
                     MediaOptions.Directory ?? "temp",
-                    MediaOptions.Name, src.PathExtension);
+                    MediaOptions.Name, srcUrl.PathExtension);
+                var dstUrl = new NSUrl("file:///" + dst);
 
-                // create new file in the destination directory with the lovely data
+
+                // copy the restricted tmp file to the destination directory
+                var error = new NSError();
                 NSFileManager fileManager = new NSFileManager();
-                bool success = fileManager.CreateFile(dst, data, new NSFileAttributes());
-
-                // cleanup remains of NSData (hopefully hasn't killed memory)
-                data?.Dispose();
-                data = null;
-                GC.Collect(GC.MaxGeneration, GCCollectionMode.Default);
+                bool success = fileManager.Copy(srcUrl, dstUrl, out error);
 
                 if (success)
                 {
