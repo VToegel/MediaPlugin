@@ -77,7 +77,7 @@ Task<MediaFile> PickPhotoAsync(PickMediaOptions options = null);
 /// </summary>
 /// <param name="options">Pick Photo Media Options</param>
 /// <returns>Media files or null if canceled</returns>
-Task<MediaFile> PickPhotosAsync(PickMediaOptions options = null);
+Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null);
 
 /// <summary>
 /// Take a photo async with specified options
@@ -99,7 +99,7 @@ Task<MediaFile> PickVideoAsync();
 /// Pick multiple videos from the default gallery
 /// </summary>
 /// <returns>Media files of video or null if canceled</returns>
-Task<MediaFile> PickVideosAsync();
+Task<List<MediaFile>> PickVideosAsync();
 
 /// <summary>
 /// Take a video with specified options
