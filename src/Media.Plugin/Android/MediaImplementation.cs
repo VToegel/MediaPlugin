@@ -111,18 +111,6 @@ namespace Plugin.Media
             return media;
         }
 
-        /// <summary>
-        /// Nothing special implemented for V2 on android yet
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="pickerOptions"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public async Task<List<MediaFile>> PickPhotosAsyncV2(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
-        {
-            return await PickPhotosAsync(options, pickerOptions, token);
-        }
-
 
         public async Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken))
 		{
@@ -311,6 +299,25 @@ namespace Plugin.Media
             VerifyOptions(options);
 
             return await TakeMediaAsync("video/*", MediaStore.ActionVideoCapture, options, token);
+        }
+
+        /// <summary>
+        /// Picks multiple videos from the default gallery
+        /// </summary>
+        /// <returns>MediaFile list or null if canceled</returns>
+        public async Task<List<MediaFile>> PickVideosAsync(CancellationToken token = default(CancellationToken))
+        {
+            if (!await RequestStoragePermission())
+            {
+                throw new MediaPermissionException(nameof(StoragePermission));
+            }
+
+            var medias = await TakeMediasAsync("video/*", Intent.ActionPick, new StorePickerMediaOptions { MultiPicker = true }, token);
+
+            if (medias == null)
+                return null;
+
+            return medias;
         }
 
         readonly Context context;

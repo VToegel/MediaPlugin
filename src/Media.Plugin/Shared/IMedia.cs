@@ -52,15 +52,6 @@ namespace Plugin.Media.Abstractions
 		Task<List<MediaFile>> PickPhotosAsync(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken));
 
 		/// <summary>
-		/// Uses updated lib functions for multi-picking gallery
-		/// </summary>
-		/// <param name="options"></param>
-		/// <param name="pickerOptions"></param>
-		/// <param name="token"></param>
-		/// <returns></returns>
-		Task<List<MediaFile>> PickPhotosAsyncV2(PickMediaOptions options = null, MultiPickerOptions pickerOptions = null, CancellationToken token = default(CancellationToken));
-
-		/// <summary>
 		/// Take a photo async with specified options
 		/// </summary>
 		/// <param name="options">Camera Media Options</param>
@@ -75,13 +66,19 @@ namespace Plugin.Media.Abstractions
 		/// <returns>Media file of video or null if canceled</returns>
 		Task<MediaFile> PickVideoAsync(CancellationToken token = default(CancellationToken));
 
-		/// <summary>
-		/// Take a video with specified options
-		/// </summary>
-		/// <param name="options">Video Media Options</param>
-		/// <param name="token">Cancellation token</param>
-		/// <returns>Media file of new video or null if canceled</returns>
-		Task<MediaFile> TakeVideoAsync(StoreVideoOptions options, CancellationToken token = default(CancellationToken));
+        /// <summary>
+        /// Choose one or more videos from the default gallery
+        /// </summary>
+        /// <returns>List media file or null if canceled</returns>
+        Task<List<MediaFile>> PickVideosAsync(CancellationToken token = default(CancellationToken));
+
+        /// <summary>
+        /// Take a video with specified options
+        /// </summary>
+        /// <param name="options">Video Media Options</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Media file of new video or null if canceled</returns>
+        Task<MediaFile> TakeVideoAsync(StoreVideoOptions options, CancellationToken token = default(CancellationToken));
 
 	}
 }

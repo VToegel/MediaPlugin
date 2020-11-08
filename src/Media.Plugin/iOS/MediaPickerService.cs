@@ -20,13 +20,17 @@ namespace Plugin.Media.iOS
 
         public static TaskCompletionSource<List<MediaFile>> CompletionSource;
 
+        
+
         public class PickerDelegate : PHPickerViewControllerDelegate
         {
+            public StoreCameraMediaOptions MediaOptions { get; set; } = new StoreCameraMediaOptions();
+
             public override void DidFinishPicking(PHPickerViewController picker, PHPickerResult[] results)
             {
                 // multiple 'DidFinishPicking' calls can be made while processing selections - stop that nonsense here
                 if (picker.IsBeingDismissed)
-					return;
+                    return;
 
                 //Dismiss Picker
                 picker.DismissViewController(true, null);
@@ -40,15 +44,25 @@ namespace Plugin.Media.iOS
                     {
                         var taskCompletionSource = new TaskCompletionSource<MediaFile>();
 
-                        //Convert PHPickerResult to Stream
+                        // Convert PHPickerResult Images to MediaFiles (path and stream handler)
                         result.ItemProvider.LoadFileRepresentation(UTType.Image, (item, error) =>
                         {
                             if (error != null || item == null) return;
 
-							//Set Result
-							taskCompletionSource.SetResult(GetPictureMediaFile(item));
+                            //Set Result
+                            taskCompletionSource.SetResult(GetMediaFile(item, MediaImplementation.TypeImage));
                         });
 
+
+                        // Convert PHPickerResult Videos to MediaFiles (path and stream handler)
+                        result.ItemProvider.LoadFileRepresentation(UTType.Movie, (item, error) =>
+                        {
+                            if (error != null || item == null) return;
+
+                            //Set Result
+                            taskCompletionSource.SetResult(GetMediaFile(item, MediaImplementation.TypeMovie));
+                        });
+                        
                         MediaFiles.Add(taskCompletionSource.Task.Result);
                     }
 
@@ -65,32 +79,34 @@ namespace Plugin.Media.iOS
             /// </summary>
             /// <param name="src"></param>
             /// <returns></returns>
-			MediaFile GetPictureMediaFile(NSUrl src)
-			{
-				// this seems to be the only working method to interact with this NSURL (other direct means fail)
-				NSData data = NSData.FromUrl(src);
+            MediaFile GetMediaFile(NSUrl src, string mediaType)
+            {
+                // this seems to be the only working method to interact with this NSURL (other direct means fail)
+                NSData data = NSData.FromUrl(src);
 
                 // build in-app destination directory that we have access to
-				var dst = MediaPickerDelegate.GetOutputPath(MediaImplementation.TypeImage, "temp", null, src.PathExtension);
+                var dst = MediaPickerDelegate.GetOutputPath(mediaType, 
+                    MediaOptions.Directory ?? "temp",
+                    MediaOptions.Name, src.PathExtension);
 
                 // create new file in the destination directory with the lovely data
                 NSFileManager fileManager = new NSFileManager();
                 bool success = fileManager.CreateFile(dst, data, new NSFileAttributes());
 
                 // cleanup remains of NSData (hopefully hasn't killed memory)
-				data?.Dispose();
-				data = null;
-				GC.Collect(GC.MaxGeneration, GCCollectionMode.Default);
+                data?.Dispose();
+                data = null;
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Default);
 
-				if (success)
-				{
-					return new MediaFile(dst, () => File.OpenRead(dst));
-				}
-				else
+                if (success)
                 {
-					return new MediaFile("", null);
+                    return new MediaFile(dst, () => File.OpenRead(dst));
                 }
-			}
-		}
+                else
+                {
+                    return new MediaFile("", null);
+                }
+            }
+        }
     }
 }

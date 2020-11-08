@@ -16,7 +16,7 @@ namespace Plugin.Media
     {
 
         internal MediaPickerController(MediaPickerDelegate mpDelegate) =>
-			base.Delegate = mpDelegate;
+            base.Delegate = mpDelegate;
         
 
         /// <summary>
@@ -34,12 +34,12 @@ namespace Plugin.Media
             }
         }
 
-		/// <summary>
-		/// Gets result of picker
-		/// </summary>
-		/// <returns></returns>
+        /// <summary>
+        /// Gets result of picker
+        /// </summary>
+        /// <returns></returns>
 
-		public Task<List<MediaFile>> GetResultAsync() =>
+        public Task<List<MediaFile>> GetResultAsync() =>
             ((MediaPickerDelegate)Delegate).Task;
 
         bool disposed;
@@ -51,15 +51,15 @@ namespace Plugin.Media
                 disposed = true;
                 InvokeOnMainThread(() =>
                 {
-					try
-					{
-						Delegate?.Dispose();
-						Delegate = null;
-					}
-					catch
-					{
+                    try
+                    {
+                        Delegate?.Dispose();
+                        Delegate = null;
+                    }
+                    catch
+                    {
 
-					}
+                    }
                 });
             }
         }
