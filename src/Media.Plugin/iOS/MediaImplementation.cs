@@ -382,6 +382,7 @@ namespace Plugin.Media
 
             // configure PHPicker selection limit and media type
             var config = new PHPickerConfiguration();
+            config.PreferredAssetRepresentationMode = PHPickerConfigurationAssetRepresentationMode.Compatible; // ensures we don't have to deal with .heic files
             config.Filter = mediaType == TypeImage ? PHPickerFilter.ImagesFilter : PHPickerFilter.VideosFilter;
             config.SelectionLimit = pickerOptions?.MaximumImagesCount ?? 0;
 
