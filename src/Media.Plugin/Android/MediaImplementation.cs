@@ -339,26 +339,28 @@ namespace Plugin.Media
             if ((int)Build.VERSION.SdkInt < 23)
                 return true;
 
-            var checkCamera = HasPermissionInManifest(Android.Manifest.Permission.Camera);
+            var permissions = new List<string>();
 
-			var hasStoragePermission = await Permissions.CheckStatusAsync<StoragePermission>();
+            var camera = nameof(Permissions.Camera);
+            var storage = nameof(StoragePermission);
+
+            var checkCamera = HasPermissionInManifest(Android.Manifest.Permission.Camera);
 
             var hasCameraPermission = PermissionStatus.Granted;
             if (checkCamera)
                 hasCameraPermission = await Permissions.CheckStatusAsync<Permissions.Camera>();
 
-
-            var permissions = new List<string>();
-
-            var camera = nameof(Permissions.Camera);
-			var storage = nameof(StoragePermission);
-
-
             if (hasCameraPermission != PermissionStatus.Granted)
                 permissions.Add(camera);
 
-            if(hasStoragePermission != PermissionStatus.Granted)
-                permissions.Add(storage);
+            // StorageWrite no longer exists starting from Android API 33
+            if ((int)Build.VERSION.SdkInt < 33)
+            {
+                var hasStoragePermission = await Permissions.CheckStatusAsync<StoragePermission>();
+
+                if (hasStoragePermission != PermissionStatus.Granted)
+                    permissions.Add(storage);
+            }
 
             if (permissions.Count == 0) //good to go!
                 return true;
@@ -371,17 +373,17 @@ namespace Plugin.Media
                     case nameof(Permissions.Camera):
                         results.Add(permission, await Permissions.RequestAsync<Permissions.Camera>());
                         break;
-					case nameof(StoragePermission):
-						results.Add(permission, await Permissions.RequestAsync<StoragePermission>());
-						break;
-				}
+                    case nameof(StoragePermission):
+                        results.Add(permission, await Permissions.RequestAsync<StoragePermission>());
+                        break;
                 }
-			
-			if (results.ContainsKey(storage) &&
-					results[storage] != PermissionStatus.Granted)
-			{
-				Console.WriteLine("Storage permission Denied.");
-				return false;
+            }
+
+            if (results.ContainsKey(storage) &&
+                    results[storage] != PermissionStatus.Granted)
+            {
+                Console.WriteLine("Storage permission Denied.");
+                return false;
             }
 
             if (results.ContainsKey(camera) &&
@@ -400,15 +402,19 @@ namespace Plugin.Media
             if ((int)Build.VERSION.SdkInt < 23)
                 return true;
 
-			var status = await Permissions.CheckStatusAsync<StoragePermission>();
-            if (status != PermissionStatus.Granted)
+            // StorageWrite no longer exists starting from Android API 33
+            if ((int)Build.VERSION.SdkInt < 33)
             {
-                Console.WriteLine("Does not have storage permission granted, requesting.");
-                var result = await Permissions.RequestAsync<StoragePermission>();
-                if (result != PermissionStatus.Granted)
+                var status = await Permissions.CheckStatusAsync<StoragePermission>();
+                if (status != PermissionStatus.Granted)
                 {
-                    Console.WriteLine("Storage permission Denied.");
-                    return false;
+                    Console.WriteLine("Does not have storage permission granted, requesting.");
+                    var result = await Permissions.RequestAsync<StoragePermission>();
+                    if (result != PermissionStatus.Granted)
+                    {
+                        Console.WriteLine("Storage permission Denied.");
+                        return false;
+                    }
                 }
             }
 

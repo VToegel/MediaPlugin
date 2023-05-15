@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using static Xamarin.Essentials.Permissions;
 using System.Threading.Tasks;
-using Xamarin.Essentials;
+#if NET6_0_OR_GREATER
+using static Microsoft.Maui.ApplicationModel.Permissions;
+#else
+using static Xamarin.Essentials.Permissions;
+#endif
 using Android;
 
 namespace Plugin.Media
