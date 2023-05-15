@@ -37,7 +37,7 @@ namespace Plugin.Media.iOS
 
                 try
                 {
-                    List<MediaFile> MediaFiles = new List<MediaFile>();
+                    var MediaFiles = new List<MediaFile>();
 
 
                     foreach (var result in results)
@@ -90,12 +90,12 @@ namespace Plugin.Media.iOS
 
                 // copy the restricted tmp file to the destination directory
                 var error = new NSError();
-                NSFileManager fileManager = new NSFileManager();
-                bool success = fileManager.Copy(srcUrl, dstUrl, out error);
+                var fileManager = new NSFileManager();
+                var success = fileManager.Copy(srcUrl, dstUrl, out error);
 
                 if (success)
                 {
-                    return new MediaFile(dst, () => File.OpenRead(dst));
+                    return new MediaFile(dst, () => File.OpenRead(dst), originalFilename: srcUrl.LastPathComponent);
                 }
                 else
                 {
