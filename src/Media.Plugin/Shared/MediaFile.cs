@@ -10,19 +10,35 @@ namespace Plugin.Media.Abstractions
     public sealed class MediaFile : IDisposable
     {
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="streamGetter"></param>
-		/// <param name="albumPath"></param>
-		public MediaFile(string path, Func<Stream> streamGetter, Func<Stream> streamGetterForExternalStorage = null, string albumPath = null)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="streamGetter"></param>
+        /// <param name="albumPath"></param>
+        public MediaFile(string path, Func<Stream> streamGetter, Func<Stream> streamGetterForExternalStorage = null, string albumPath = null, string originalFilename = null)
         {
             this.streamGetter = streamGetter;
-						this.streamGetterForExternalStorage = streamGetterForExternalStorage;
+            this.streamGetterForExternalStorage = streamGetterForExternalStorage;
             this.path = path;
             this.albumPath = albumPath;
+            this.originalFilename = originalFilename;
         }
+
+        /// <summary>
+        /// The original filename
+        /// </summary>
+        public string OriginalFilename
+        {
+            get
+            {
+                if (isDisposed)
+                    throw new ObjectDisposedException(null);
+
+                return originalFilename;
+            }
+        }
+
         /// <summary>
         /// Path to file
         /// </summary>
@@ -67,22 +83,23 @@ namespace Plugin.Media.Abstractions
             if (isDisposed)
                 throw new ObjectDisposedException(null);
 
-						return streamGetter();
+            return streamGetter();
         }
 
-				/// <summary>
-				/// Get stream with image orientation rotated if available. If not, then just GetStream()
-				/// </summary>
-				/// <returns></returns>
-				public Stream GetStreamWithImageRotatedForExternalStorage() {
-					if (isDisposed)
-						throw new ObjectDisposedException(null);
+        /// <summary>
+        /// Get stream with image orientation rotated if available. If not, then just GetStream()
+        /// </summary>
+        /// <returns></returns>
+        public Stream GetStreamWithImageRotatedForExternalStorage()
+        {
+            if (isDisposed)
+                throw new ObjectDisposedException(null);
 
-					if (streamGetterForExternalStorage != null)
-						return streamGetterForExternalStorage();
-					else
-						return GetStream();
-				}
+            if (streamGetterForExternalStorage != null)
+                return streamGetterForExternalStorage();
+            else
+                return GetStream();
+        }
 
         /// <summary>
         /// 
@@ -93,9 +110,10 @@ namespace Plugin.Media.Abstractions
             GC.SuppressFinalize(this);
         }
 
-				bool isDisposed;
-				Func<Stream> streamGetter;
-				Func<Stream> streamGetterForExternalStorage;
+        bool isDisposed;
+        Func<Stream> streamGetter;
+        Func<Stream> streamGetterForExternalStorage;
+        string originalFilename;
         string path;
         string albumPath;
 
@@ -105,8 +123,8 @@ namespace Plugin.Media.Abstractions
                 return;
 
             isDisposed = true;
-						if(disposing)
-							streamGetter = null;
+            if (disposing)
+                streamGetter = null;
         }
         /// <summary>
         /// 

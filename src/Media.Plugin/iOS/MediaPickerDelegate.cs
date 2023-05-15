@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Plugin.Media.Abstractions;
 
 using CoreGraphics;
+#if !MACCATALYST
 using AssetsLibrary;
+#endif
 using Foundation;
 using UIKit;
 using NSAction = System.Action;
@@ -16,6 +18,8 @@ using System.Threading;
 using System.Diagnostics;
 using System.Drawing;
 using CoreImage;
+using Photos;
+using System.Linq;
 
 namespace Plugin.Media
 {
@@ -44,7 +48,6 @@ namespace Plugin.Media
         public void CancelTask() => tcs.TrySetResult(null);
 
         public UIView View => viewController.View;
-        
         public Task<List<MediaFile>> Task => tcs.Task;
 
         public override async void FinishedPickingMedia(UIImagePickerController picker, NSDictionary info)
@@ -150,6 +153,7 @@ namespace Plugin.Media
 
         UIDeviceOrientation? orientation;
         NSObject observer;
+        readonly object observerDisposeLock = new object();
         readonly UIViewController viewController;
         readonly UIImagePickerControllerSourceType source;
         TaskCompletionSource<List<MediaFile>> tcs = new TaskCompletionSource<List<MediaFile>>();
@@ -157,7 +161,6 @@ namespace Plugin.Media
 
         bool IsCaptured =>
             source == UIImagePickerControllerSourceType.Camera;
-        
         void Dismiss(UINavigationController picker, NSAction onDismiss)
         {
             if (viewController == null)
@@ -191,11 +194,31 @@ namespace Plugin.Media
 
         void RemoveOrientationChangeObserverAndNotifications()
         {
-            if (viewController != null)
+            if (viewController == null)
+                return;
+
+
+            UIDevice.CurrentDevice.EndGeneratingDeviceOrientationNotifications();
+
+            if (observer != null)
             {
-                UIDevice.CurrentDevice.EndGeneratingDeviceOrientationNotifications();
-                NSNotificationCenter.DefaultCenter.RemoveObserver(observer);
-                observer.Dispose();
+                lock (observerDisposeLock)
+                {
+                    if (observer != null)
+                    {
+                        try
+                        {
+                            NSNotificationCenter.DefaultCenter.RemoveObserver(observer);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex);
+                        }
+
+                        observer.Dispose();
+                        observer = null;
+                    }
+                }
             }
         }
 
@@ -372,8 +395,12 @@ namespace Plugin.Media
                     else
                     {
                         var url = info[UIImagePickerController.ReferenceUrl] as NSUrl;
-                        if(url != null)
+                        if (url != null)
+                        {
+#if !MACCATALYST
                             meta = PhotoLibraryAccess.GetPhotoLibraryMetadata(url);
+#endif
+                        }
                     }
                 }
 
@@ -407,7 +434,6 @@ namespace Plugin.Media
 
                 imageData.Save(path, true);
                 imageData.Dispose();
-                
             }
 
 
@@ -425,9 +451,11 @@ namespace Plugin.Media
                 {
                     try
                     {
+#if !MACCATALYST
                         var library = new ALAssetsLibrary();
                         var albumSave = await library.WriteImageToSavedPhotosAlbumAsync(cgImage, meta);
                         aPath = albumSave.AbsoluteString;
+#endif
                     }
                     catch (Exception ex)
                     {
@@ -445,7 +473,17 @@ namespace Plugin.Media
                     return File.OpenRead(path);
             };
 
-            return new MediaFile(path, () => File.OpenRead(path), streamGetterForExternalStorage: () => getStreamForExternalStorage(), albumPath: aPath);
+            string originalFilename = null;
+            if (info.TryGetValue(UIImagePickerController.PHAsset, out var assetObj))
+            {
+                var asset = (PHAsset)assetObj;
+                if (asset != null)
+                {
+                    originalFilename = PHAssetResource.GetAssetResources(asset)?.FirstOrDefault()?.OriginalFilename;
+                }
+            }
+
+            return new MediaFile(path, () => File.OpenRead(path), streamGetterForExternalStorage: () => getStreamForExternalStorage(), albumPath: aPath, originalFilename: originalFilename);
         }
 
         internal static NSDictionary SetGpsLocation(NSDictionary meta, Location location)
@@ -476,7 +514,7 @@ namespace Plugin.Media
             {
                 pathExtension = pathExtension.ToLowerInvariant();
                 var finalQuality = quality;
-                var imageData = pathExtension == "png" ? image.AsPNG(): image.AsJPEG(finalQuality);
+                var imageData = pathExtension == "png" ? image.AsPNG() : image.AsJPEG(finalQuality);
 
                 //continue to move down quality , rare instances
                 while (imageData == null && finalQuality > 0)
@@ -547,9 +585,11 @@ namespace Plugin.Media
                 {
                     try
                     {
+#if !MACCATALYST
                         var library = new ALAssetsLibrary();
                         var albumSave = await library.WriteVideoToSavedPhotosAlbumAsync(new NSUrl(path));
                         aPath = albumSave.AbsoluteString;
+#endif
                     }
                     catch (Exception ex)
                     {
@@ -567,7 +607,7 @@ namespace Plugin.Media
             var ext = Path.GetExtension(name);
             if (string.IsNullOrWhiteSpace(ext))
                 ext = "." + pathExtension;
-            if(string.IsNullOrWhiteSpace(ext))
+            if (string.IsNullOrWhiteSpace(ext))
                 ext = ((isPhoto) ? ".jpg" : ".mp4");
 
             name = Path.GetFileNameWithoutExtension(name);
@@ -600,7 +640,7 @@ namespace Plugin.Media
             {
                 var namePart = name.Split(".");
                 name = $"{namePart[0]}_{postpendName}";
-                if(namePart.Length > 1)
+                if (namePart.Length > 1)
                 {
                     name = name + namePart[1];
                 }

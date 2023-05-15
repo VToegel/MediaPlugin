@@ -5,26 +5,26 @@ namespace Plugin.Media.Abstractions
     /// <summary>
     /// 
     /// </summary>
-#if !NETSTANDARD1_0
+#if !NETSTANDARD
     [Serializable]
 #endif
     public class MediaFileNotFoundException : Exception
     {
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="path"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
         public MediaFileNotFoundException(string path)
           : base("Unable to locate media file at " + path)
         {
             Path = path;
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="innerException"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="innerException"></param>
         public MediaFileNotFoundException(string path, Exception innerException)
           : base("Unable to locate media file at " + path, innerException)
         {

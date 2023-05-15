@@ -30,7 +30,7 @@ namespace Plugin.Media
             imageSource?.Dispose();
 
             CILanczosScaleTransform transform = null;
-            if(UIDevice.CurrentDevice.CheckSystemVersion(13, 0))
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 0))
             {
                 transform = new CILanczosScaleTransform
                 {
@@ -41,6 +41,10 @@ namespace Plugin.Media
             }
             else
             {
+#if NET6_0_OR_GREATER
+
+                return imageSource;
+#else
                 transform = new CILanczosScaleTransform
                 {
                     Scale = scale,
@@ -49,6 +53,7 @@ namespace Plugin.Media
 #pragma warning restore CS0618 // Type or member is obsolete
                     AspectRatio = 1.0f
                 };
+#endif
             }
 
             var output = transform.OutputImage;
@@ -68,7 +73,7 @@ namespace Plugin.Media
         {
             var sourceSize = sourceImage.Size;
             var maxResizeFactor = Math.Max(maxWidth / sourceSize.Width, maxHeight / sourceSize.Height);
-            if (maxResizeFactor > 1) 
+            if (maxResizeFactor > 1)
                 return sourceImage;
             var width = maxResizeFactor * sourceSize.Width;
             var height = maxResizeFactor * sourceSize.Height;

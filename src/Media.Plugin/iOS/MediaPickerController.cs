@@ -17,16 +17,16 @@ namespace Plugin.Media
 
         internal MediaPickerController(MediaPickerDelegate mpDelegate) =>
             base.Delegate = mpDelegate;
-        
+
 
         /// <summary>
         /// Deleage
         /// </summary>
         public override NSObject Delegate
         {
-            get => base.Delegate; 
+            get => base.Delegate;
             set
-            {   
+            {
                 if (value == null)
                     base.Delegate = value;
                 else
@@ -46,7 +46,7 @@ namespace Plugin.Media
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            if(disposing && !disposed)
+            if (disposing && !disposed)
             {
                 disposed = true;
                 InvokeOnMainThread(() =>

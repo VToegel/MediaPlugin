@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+#if !MACCATALYST
+using System;
 using CoreImage;
 using Foundation;
 using Photos;
@@ -127,3 +129,4 @@ namespace Plugin.Media
         }
     }
 }
+#endif
