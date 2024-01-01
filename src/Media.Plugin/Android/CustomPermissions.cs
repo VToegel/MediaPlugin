@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-#if NET6_0_OR_GREATER
+﻿#if NET6_0_OR_GREATER
 using static Microsoft.Maui.ApplicationModel.Permissions;
 #else
 using static Xamarin.Essentials.Permissions;

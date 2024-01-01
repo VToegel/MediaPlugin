@@ -1,7 +1,8 @@
-<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
+﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
 	<PropertyGroup>			
-		<TargetFrameworks>netstandard2.0;MonoAndroid10.0;Xamarin.iOS10;net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
-		<AssemblyName>Plugin.Media</AssemblyName>
+		<!--<TargetFrameworks>netstandard2.0;MonoAndroid10.0;Xamarin.iOS10;net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>-->
+    <TargetFrameworks>netstandard2.0;net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+    <AssemblyName>Plugin.Media</AssemblyName>
     <RootNamespace>Plugin.Media</RootNamespace>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -15,8 +16,8 @@
     <Owners>JamesMontemagno</Owners>
     <PackageProjectUrl>https://github.com/jamesmontemagno/MediaPlugin</PackageProjectUrl>
     <Summary>Take or pick photos and videos from a cross platform API.</Summary>
-    <PackageTags>xamarin, pcl, xam.pcl, dotnet maui, .net maui, .net 6, media, photo, video, plugin, plugin for xamarin, windows phone, winphone, wp8, winrt, android, xamarin.forms, ios</PackageTags>
-    <Title>Media Plugin for .NET 6, .NET MAUI, Xamarin, and Windows</Title>
+    <PackageTags>xamarin, pcl, xam.pcl, dotnet maui, .net maui, .net 8, media, photo, video, plugin, plugin for xamarin, windows phone, winphone, wp8, winrt, android, xamarin.forms, ios</PackageTags>
+    <Title>Media Plugin for .NET 8, .NET MAUI, Xamarin, and Windows</Title>
     <Description>
       Take or pick photos and videos from a cross platform API.
     </Description>
@@ -66,7 +67,8 @@
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.Contains('-android')) ">
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.8.0.1" />
+    <!--<PackageReference Include="Xamarin.AndroidX.Core" Version="1.8.0.1" />-->
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.3" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
 
@@ -75,14 +77,17 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('MonoAndroid')) ">
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.6.0.1" />
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.3" />
+    <!--<PackageReference Include="Xamarin.AndroidX.Core" Version="1.6.0.1" />-->
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.3" />
+    <!--<PackageReference Include="Xamarin.Essentials" Version="1.7.3" />-->
+    <PackageReference Include="Xamarin.Essentials" Version="1.8.1" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
 
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('Xamarin.iOS')) ">
-    <PackageReference Include="Xamarin.Essentials" Version="1.7.3" />
+    <!--<PackageReference Include="Xamarin.Essentials" Version="1.7.3" />-->
+    <PackageReference Include="Xamarin.Essentials" Version="1.8.1" />
     <Compile Include="**\iOS\*.cs" />
   </ItemGroup>
 
