@@ -69,8 +69,10 @@ namespace Plugin.Media
         protected override void OnSaveInstanceState(Bundle outState)
         {
             outState.PutBoolean("ran", true);
-            outState.PutString(MediaStore.MediaColumns.Title, title);
-            outState.PutString(MediaStore.Images.ImageColumns.Description, description);
+            //TODO outState.PutString(MediaStore.MediaColumns.Title, title);
+            outState.PutString(MediaStore.IMediaColumns.Title, title);
+            //TODO outState.PutString(MediaStore.Images.ImageColumns.Description, description);
+            outState.PutString(MediaStore.Images.IImageColumns.Description, description);
             outState.PutInt(ExtraId, id);
             outState.PutString(ExtraType, type);
             outState.PutString(ExtraAction, action);
@@ -103,8 +105,10 @@ namespace Plugin.Media
 
             var ran = b.GetBoolean("ran", defaultValue: false);
 
-            title = b.GetString(MediaStore.MediaColumns.Title);
-            description = b.GetString(MediaStore.Images.ImageColumns.Description);
+            //TODO title = b.GetString(MediaStore.MediaColumns.Title);
+            //description = b.GetString(MediaStore.Images.ImageColumns.Description);
+            title = b.GetString(MediaStore.IMediaColumns.Title);
+            description = b.GetString(MediaStore.Images.IImageColumns.Description);
 
             tasked = b.GetBoolean(ExtraTasked);
             id = b.GetInt(ExtraId, 0);
@@ -263,7 +267,9 @@ namespace Plugin.Media
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("Unable to create path: " + newPath + " " + ex.Message + "This means you have illegal characters");
+#pragma warning disable CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
                 throw ex;
+#pragma warning restore CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
             }
         }
 
@@ -600,15 +606,18 @@ namespace Plugin.Media
                     try
                     {
                         string[] proj = null;
+                        //TODO if ((int)Build.VERSION.SdkInt >= 22)
+                        //    proj = new[] { MediaStore.MediaColumns.Data };
                         if ((int)Build.VERSION.SdkInt >= 22)
-                            proj = new[] { MediaStore.MediaColumns.Data };
+                            proj = new[] { MediaStore.IMediaColumns.Data };
 
                         cursor = context.ContentResolver.Query(uri, proj, null, null, null);
                         if (cursor == null || !cursor.MoveToNext())
                             tcs.SetResult(new Tuple<string, string, bool>(null, null, false));
                         else
                         {
-                            var column = cursor.GetColumnIndex(MediaStore.MediaColumns.Data);
+                            //var column = cursor.GetColumnIndex(MediaStore.MediaColumns.Data);
+                            var column = cursor.GetColumnIndex(MediaStore.IMediaColumns.Data);
                             string contentPath = null;
 
                             if (column != -1)

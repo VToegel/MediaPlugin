@@ -207,7 +207,7 @@ namespace Plugin.Media.Abstractions
         }
 
         /// <summary>
-        // Get or set if the image should be stored public
+        /// Get or set if the image should be stored public
         /// </summary>
         public bool SaveToAlbum
         {

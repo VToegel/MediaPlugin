@@ -13,6 +13,8 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using Android.App;
+using System.Diagnostics.CodeAnalysis;
+
 #if NET6_0_OR_GREATER
 using Permissions = Microsoft.Maui.ApplicationModel.Permissions;
 using PermissionStatus = Microsoft.Maui.ApplicationModel.PermissionStatus;
@@ -25,7 +27,7 @@ namespace Plugin.Media
     /// <summary>
     /// Implementation for Feature
     /// </summary>
-    [Android.Runtime.Preserve(AllMembers = true)]
+    //TODO [Android.Runtime.Preserve(AllMembers = true)]
     public class MediaImplementation : IMedia
     {
         const string pixelXDimens = "PixelXDimension";
@@ -36,6 +38,7 @@ namespace Plugin.Media
         /// <summary>
         /// Implementation
         /// </summary>
+        [DynamicDependency("MediaImp")]
         public MediaImplementation()
         {
 
@@ -216,8 +219,10 @@ namespace Plugin.Media
                     values.Put(MediaStore.Audio.Media.InterfaceConsts.MimeType, "image/jpeg");
                     values.Put(MediaStore.Images.Media.InterfaceConsts.Description, string.Empty);
                     values.Put(MediaStore.Images.Media.InterfaceConsts.DateTaken, Java.Lang.JavaSystem.CurrentTimeMillis());
-                    values.Put(MediaStore.Images.ImageColumns.BucketId, f.ToString().ToLowerInvariant().GetHashCode());
-                    values.Put(MediaStore.Images.ImageColumns.BucketDisplayName, f.Name.ToLowerInvariant());
+                    //TODO values.Put(MediaStore.Images.ImageColumns.BucketId, f.ToString().ToLowerInvariant().GetHashCode());
+                    values.Put(MediaStore.Images.IImageColumns.BucketId, f.ToString().ToLowerInvariant().GetHashCode());
+                    //TODO values.Put(MediaStore.Images.ImageColumns.BucketDisplayName, f.Name.ToLowerInvariant());
+                    values.Put(MediaStore.Images.IImageColumns.BucketDisplayName, f.Name.ToLowerInvariant());
 
                     var cr = context.ContentResolver;
                     var albumUri = cr.Insert(MediaStore.Images.Media.ExternalContentUri, values);
@@ -496,7 +501,8 @@ namespace Plugin.Media
             if (options != null)
             {
                 pickerIntent.PutExtra(MediaPickerActivity.ExtraPath, options.Directory);
-                pickerIntent.PutExtra(MediaStore.Images.ImageColumns.Title, options.Name);
+                //TODO pickerIntent.PutExtra(MediaStore.Images.ImageColumns.Title, options.Name);
+                pickerIntent.PutExtra(MediaStore.IMediaColumns.Title, options.Name);
 
                 var pickerOptions = (options as StorePickerMediaOptions);
                 if (pickerOptions != null)
@@ -794,7 +800,9 @@ namespace Plugin.Media
                     catch (Exception ex)
                     {
 #if DEBUG
+#pragma warning disable CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
                         throw ex;
+#pragma warning restore CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
 #else
                         return false;
 #endif
@@ -804,7 +812,9 @@ namespace Plugin.Media
             catch (Exception ex)
             {
 #if DEBUG
+#pragma warning disable CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
                 throw ex;
+#pragma warning restore CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
 #else
                 return Task.FromResult(false);
 #endif
@@ -869,9 +879,7 @@ namespace Plugin.Media
         /// Resize Image Async
         /// </summary>
         /// <param name="filePath">The file image path</param>
-        /// <param name="photoSize">Photo size to go to.</param>
-        /// <param name="quality">Image quality (1-100)</param>
-        /// <param name="customPhotoSize">Custom size in percent</param>
+        /// <param name="mediaOptions">The options.</param>
         /// <param name="exif">original metadata</param>
         /// <returns>True if rotation or compression occured, else false</returns>
         public Task<bool> ResizeAsync(string filePath, StoreCameraMediaOptions mediaOptions, ExifInterface exif)
@@ -965,7 +973,9 @@ namespace Plugin.Media
                     catch (Exception ex)
                     {
 #if DEBUG
+#pragma warning disable CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
                         throw ex;
+#pragma warning restore CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
 #else
                         return false;
 #endif
@@ -975,7 +985,9 @@ namespace Plugin.Media
             catch (Exception ex)
             {
 #if DEBUG
+#pragma warning disable CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
                 throw ex;
+#pragma warning restore CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
 #else
                 return Task.FromResult(false);
 #endif
@@ -1050,7 +1062,9 @@ namespace Plugin.Media
             catch (Exception ex)
             {
 #if DEBUG
+#pragma warning disable CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
                 throw ex;
+#pragma warning restore CA2200 // Erneut ausführen, um Stapeldetails beizubehalten
 #else
                 return 0;
 #endif

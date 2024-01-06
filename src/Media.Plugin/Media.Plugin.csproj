@@ -27,6 +27,7 @@
     <NeutralLanguage>en</NeutralLanguage>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <LangVersion>10.0</LangVersion>
+  <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
@@ -67,7 +68,6 @@
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.Contains('-android')) ">
-    <!--<PackageReference Include="Xamarin.AndroidX.Core" Version="1.8.0.1" />-->
     <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.3" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
@@ -77,16 +77,13 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('MonoAndroid')) ">
-    <!--<PackageReference Include="Xamarin.AndroidX.Core" Version="1.6.0.1" />-->
     <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.3" />
-    <!--<PackageReference Include="Xamarin.Essentials" Version="1.7.3" />-->
     <PackageReference Include="Xamarin.Essentials" Version="1.8.1" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
 
 
   <ItemGroup Condition=" $(TargetFramework.StartsWith('Xamarin.iOS')) ">
-    <!--<PackageReference Include="Xamarin.Essentials" Version="1.7.3" />-->
     <PackageReference Include="Xamarin.Essentials" Version="1.8.1" />
     <Compile Include="**\iOS\*.cs" />
   </ItemGroup>
@@ -106,5 +103,4 @@
    <ItemGroup Condition=" $(TargetFramework.Contains('-mac')) ">
     <Compile Include="**\iOS\*.cs" />
   </ItemGroup>
-
 </Project>

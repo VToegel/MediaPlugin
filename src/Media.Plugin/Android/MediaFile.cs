@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Android.Content;
 using Plugin.Media.Abstractions;
@@ -8,7 +9,7 @@ namespace Plugin.Media
     /// <summary>
     /// 
     /// </summary>
-    [Android.Runtime.Preserve(AllMembers = true)]
+    //TODO [Android.Runtime.Preserve(AllMembers = true)]
     public static class MediaFileExtensions
     {
         /// <summary>
@@ -17,6 +18,7 @@ namespace Plugin.Media
         /// <param name="self"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        [DynamicDependency("GetMedia")]
         public static Task<MediaFile> GetMediaFileExtraAsync(this Intent self, Context context)
         {
             if (self == null)
@@ -28,13 +30,16 @@ namespace Plugin.Media
             if (action == null)
                 throw new ArgumentException("Intent was not results from MediaPicker", "self");
 
-            var uri = (Android.Net.Uri)self.GetParcelableExtra("MediaFile");
+            //TODO var uri = (Android.Net.Uri)self.GetParcelableExtra("MediaFile");
+            var uri = (Android.Net.Uri)self.GetParcelableExtra("MediaFile", Java.Lang.Class.FromType(typeof(Android.Net.Uri)));
             var isPhoto = self.GetBooleanExtra("isPhoto", false);
-            var path = (Android.Net.Uri)self.GetParcelableExtra("path");
+            //TODO var path = (Android.Net.Uri)self.GetParcelableExtra("path");
+            var path = (Android.Net.Uri)self.GetParcelableExtra("path", Java.Lang.Class.FromType(typeof(Android.Net.Uri)));
             var saveToAlbum = false;
             try
             {
-                saveToAlbum = (bool)self.GetParcelableExtra("album_save");
+                //TODO saveToAlbum = (bool)self.GetParcelableExtra("album_save");
+                saveToAlbum = (bool)self.GetParcelableExtra("album_save", Java.Lang.Class.FromType(typeof(bool)));
             }
             catch { }
 
