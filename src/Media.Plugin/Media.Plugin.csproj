@@ -68,7 +68,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.Contains('-android')) ">
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.3" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.4" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
 
