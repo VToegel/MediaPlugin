@@ -76,7 +76,7 @@ namespace Plugin.Media.iOS
 
             // <summary>
             /// Copy original file data so that we preserve exif/metadata
-            /// </summary>
+            /// <summary>
             /// <param name="src"></param>
             /// <returns></returns>
             MediaFile GetMediaFile(NSUrl srcUrl, string mediaType)
