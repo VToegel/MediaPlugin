@@ -68,7 +68,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.Contains('-android')) ">
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.4" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.13.1.5" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
 
@@ -76,8 +76,9 @@
     <UseMauiEssentials>true</UseMauiEssentials>
   </PropertyGroup>
 
-  <ItemGroup Condition=" $(TargetFramework.StartsWith('MonoAndroid')) ">
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.3" />
+  <!--<ItemGroup Condition=" $(TargetFramework.StartsWith('MonoAndroid')) ">
+    --><!--<PackageReference Include="Xamarin.AndroidX.Core" Version="1.12.0.3" />--><!--
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.13.1.5" />
     <PackageReference Include="Xamarin.Essentials" Version="1.8.1" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
@@ -86,7 +87,7 @@
   <ItemGroup Condition=" $(TargetFramework.StartsWith('Xamarin.iOS')) ">
     <PackageReference Include="Xamarin.Essentials" Version="1.8.1" />
     <Compile Include="**\iOS\*.cs" />
-  </ItemGroup>
+  </ItemGroup>-->
 
    <ItemGroup Condition=" $(TargetFramework.Contains('-ios')) ">
     <Compile Include="**\iOS\*.cs" />
@@ -103,4 +104,8 @@
    <ItemGroup Condition=" $(TargetFramework.Contains('-mac')) ">
     <Compile Include="**\iOS\*.cs" />
   </ItemGroup>
+
+   <ItemGroup>
+     <PackageReference Update="Microsoft.Maui.Essentials" Version="8.0.91" />
+   </ItemGroup>
 </Project>
