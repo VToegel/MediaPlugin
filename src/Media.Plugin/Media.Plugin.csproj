@@ -48,7 +48,7 @@
   
   
   <ItemGroup Condition=" '$(Configuration)'=='Release' ">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   	<!-- platform version number information -->
@@ -68,7 +68,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" $(TargetFramework.Contains('-android')) ">
-    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.13.1.5" />
+    <PackageReference Include="Xamarin.AndroidX.Core" Version="1.16.0.2" />
     <Compile Include="**\Android\*.cs" />
   </ItemGroup>
 
@@ -106,6 +106,6 @@
   </ItemGroup>
 
    <ItemGroup>
-     <PackageReference Update="Microsoft.Maui.Essentials" Version="8.0.91" />
+     <PackageReference Update="Microsoft.Maui.Essentials" Version="9.0.90" />
    </ItemGroup>
 </Project>
